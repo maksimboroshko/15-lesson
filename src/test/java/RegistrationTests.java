@@ -14,7 +14,7 @@ public class RegistrationTests {
 
 
     @Test
-    void SuccessfulRegistration() {
+    void SuccessfulRegistrationTest() {
         given()
                 .body(data)
                 .contentType(ContentType.JSON)
@@ -28,7 +28,7 @@ public class RegistrationTests {
                 .body("token", is(token));
     }
     @Test
-    void UnSuccessfulRegistration() {
+    void UnSuccessfulRegistrationTest() {
         given()
                 .body(email)
                 .contentType(ContentType.JSON)
