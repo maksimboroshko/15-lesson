@@ -1,4 +1,6 @@
 import io.restassured.http.ContentType;
+import models.RegistrationRequest;
+import models.RegistrationResponse;
 import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
@@ -13,24 +15,11 @@ public class RegistrationTests {
     private static final String DATA = "{ \"email\": \"eve.holt@reqres.in\", \"password\": \"pistol\" }";
 
     @Test
-    void successfulRegistrationTest() {
-        given()
-                .body(DATA)
-                .contentType(ContentType.JSON)
-                .log().uri()
-                .when()
-                .post(URL)
-                .then()
-                .log().status()
-                .log().body()
-                .body("id", is(4))
-                .body("token", is(TOKEN));
-    }
-
-    @Test
     void unSuccessfulRegistrationTest() {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setEmail("sydney@fife");
         given()
-                .body(EMAIL)
+                .body(request)
                 .contentType(ContentType.JSON)
                 .log().uri()
                 .when()
@@ -40,6 +29,30 @@ public class RegistrationTests {
                 .log().body()
                 .body("error", is("Missing password"));
     }
+
+    @Test
+    void successfulRegistrationTest() {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setEmail("eve.holt@reqres.in");
+        request.setPassword("pistol");
+
+        RegistrationResponse response = given()
+                .body(request)
+                .contentType(ContentType.JSON)
+                .log().uri()
+                .when()
+                .post(URL)
+                .then()
+                .log().status()
+                .log().body()
+                .statusCode(200)
+                .extract().as(RegistrationResponse.class);
+
+        assert response.getId() == 4;
+        assert response.getToken().equals(TOKEN);
+    }
+
+
 
     @Test
     void userNotFound415Test() {
