@@ -1,3 +1,4 @@
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import io.qameta.allure.Step;
@@ -9,7 +10,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 public class RegistrationTests {
-    //не работает...
     private static final String BASE_URL = "https://reqres.in/api";
     private final RequestSpecification requestSpec = given()
             .baseUri(BASE_URL)

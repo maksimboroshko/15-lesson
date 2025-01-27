@@ -1,56 +1,72 @@
+
 plugins {
     id 'java-library'
-    id 'io.freefair.lombok' version '8.10'
-    id 'io.qameta.allure' version '2.11.2'
+    id 'io.qameta.allure' version '2.12.0'
+    id("io.freefair.lombok") version "8.11"
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-
-    testImplementation 'io.rest-assured:rest-assured:5.1.0'
-    testImplementation 'com.codeborne:selenide:6.19.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.2'
-    testImplementation 'org.slf4j:slf4j-simple:2.0.16'
-    testImplementation 'io.qameta.allure:allure-rest-assured:2.21.0'
-}
+def restAssuredVersion = "5.5.0",
+    allureVersion = "2.29.0"
 
 allure {
     report {
-        version.set("2.21.0")
+        version.set(allureVersion)
     }
     adapter {
         aspectjWeaver.set(true)
         frameworks {
             junit5 {
-                adapterVersion.set("2.21.0")
+                adapterVersion.set(allureVersion)
             }
         }
     }
+
 }
 
 
-test {
-    useJUnitPlatform()
-    systemProperties(System.getProperties())
+repositories {
+    mavenCentral()
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+
+    testImplementation 'com.codeborne:selenide:7.5.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.2'
+    testImplementation 'com.github.javafaker:javafaker:1.0.2'
+    testImplementation 'org.slf4j:slf4j-simple:2.0.16'
+    testImplementation 'com.codeborne:pdf-test:1.9.1'
+    testImplementation 'com.codeborne:xls-test:1.4.3'
+    testImplementation 'com.opencsv:opencsv:5.9'
+    testImplementation 'com.google.code.gson:gson:2.11.0'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
+    testImplementation 'com.fasterxml.jackson.core:jackson-core:2.18.1'
+    testImplementation "io.qameta.allure:allure-selenide:$allureVersion"
+    testImplementation "io.rest-assured:rest-assured:$restAssuredVersion"
+    testImplementation "io.rest-assured:json-schema-validator:$restAssuredVersion"
+    testImplementation 'io.qameta.allure:allure-rest-assured:2.29.1'
+
+
 }
 
 tasks.withType(Test) {
     useJUnitPlatform()
-    systemProperties(System.getProperties())
+
     testLogging {
         lifecycle {
-            events "started", "skipped", "failed", "standard_error", "standard_out"
+            events "passed", "started", "skipped", "failed", "standard_error", "standard_out"
             exceptionFormat "short"
         }
     }
+
+    systemProperties(System.getProperties())
 }
 
-task simple_test(type: Test) {
+task jenkins_test_test(type: Test) {
     useJUnitPlatform {
-        includeTags("Simple")
+        includeTags("API")
     }
 }
