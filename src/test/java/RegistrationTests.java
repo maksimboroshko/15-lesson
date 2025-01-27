@@ -1,20 +1,22 @@
-import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import io.qameta.allure.Step;
 import models.RegistrationRequest;
 import models.RegistrationResponse;
 import org.junit.jupiter.api.Test;
-
+import static helpers.CustomApiListener.withCustomTemplates;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
+import static specs.UserSpecs.*;
 
 public class RegistrationTests {
     private static final String BASE_URL = "https://reqres.in/api";
     private final RequestSpecification requestSpec = given()
             .baseUri(BASE_URL)
             .contentType(ContentType.JSON)
-            .log().all();
+            .log().all()
+            .filter(withCustomTemplates())
+            .log().headers();
 
     @Test
     void unSuccessfulRegistrationTest() {
@@ -62,6 +64,7 @@ public class RegistrationTests {
                 .post("/register")
                 .then()
                 .statusCode(400)
+                .log().headers()
                 .body("error", is(expectedError));
     }
 
