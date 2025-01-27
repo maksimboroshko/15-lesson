@@ -1,33 +1,27 @@
 import io.restassured.http.ContentType;
+import io.restassured.specification.RequestSpecification;
+import io.qameta.allure.Step;
 import models.RegistrationRequest;
 import models.RegistrationResponse;
 import org.junit.jupiter.api.Test;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 public class RegistrationTests {
-
-    private static final String URL = "https://reqres.in/api/register";
-    private static final String URL_23 = "https://reqres.in/api/users/23";
-    private static final String UNKNOWN_URL_23 = "https://reqres.in/api/unknown/23";
-    private static final String TOKEN = "QpwL5tke4Pnpja7X4";
-    private static final String EMAIL = "{\"email\": \"sydney@fife\"}";
-    private static final String DATA = "{ \"email\": \"eve.holt@reqres.in\", \"password\": \"pistol\" }";
+    //не работает...
+    private static final String BASE_URL = "https://reqres.in/api";
+    private final RequestSpecification requestSpec = given()
+            .baseUri(BASE_URL)
+            .contentType(ContentType.JSON)
+            .log().all();
 
     @Test
     void unSuccessfulRegistrationTest() {
         RegistrationRequest request = new RegistrationRequest();
         request.setEmail("sydney@fife");
-        given()
-                .body(request)
-                .contentType(ContentType.JSON)
-                .log().uri()
-                .when()
-                .post(URL)
-                .then()
-                .log().status()
-                .log().body()
-                .body("error", is("Missing password"));
+
+        executeUnsuccessfulRegistration(request, "Missing password");
     }
 
     @Test
@@ -36,60 +30,56 @@ public class RegistrationTests {
         request.setEmail("eve.holt@reqres.in");
         request.setPassword("pistol");
 
-        RegistrationResponse response = given()
-                .body(request)
-                .contentType(ContentType.JSON)
-                .log().uri()
-                .when()
-                .post(URL)
-                .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .extract().as(RegistrationResponse.class);
-
-        assert response.getId() == 4;
-        assert response.getToken().equals(TOKEN);
-    }
-
-
-
-    @Test
-    void userNotFound415Test() {
-        given()
-                .log().uri()
-                .when()
-                .post(URL_23)
-                .then()
-                .log().status()
-                .log().body()
-                .statusCode(415);
+        RegistrationResponse response = executeSuccessfulRegistration(request);
+        validateSuccessfulRegistration(response);
     }
 
     @Test
     void userNotFoundTest() {
-        given()
-                .log().uri()
+        given(requestSpec)
                 .when()
-                .get(URL_23)
+                .get("/users/23")
                 .then()
-                .log().status()
-                .log().body()
                 .statusCode(404)
                 .body(is("{}"));
     }
 
     @Test
     void resourceNotFoundTest() {
-        given()
-                .log().uri()
+        given(requestSpec)
                 .when()
-                .get(UNKNOWN_URL_23)
+                .get("/unknown/23")
                 .then()
-                .log().status()
-                .log().body()
                 .statusCode(404)
                 .body(is("{}"));
     }
-}
 
+    @Step("Отправка запроса на неудачную регистрацию")
+    private void executeUnsuccessfulRegistration(RegistrationRequest request, String expectedError) {
+        given(requestSpec)
+                .body(request)
+                .when()
+                .post("/register")
+                .then()
+                .statusCode(400)
+                .body("error", is(expectedError));
+    }
+
+    @Step("Отправка запроса на успешную регистрацию")
+    private RegistrationResponse executeSuccessfulRegistration(RegistrationRequest request) {
+        return given(requestSpec)
+                .body(request)
+                .when()
+                .post("/register")
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(RegistrationResponse.class);
+    }
+
+    @Step("Валидация успешной регистрации")
+    private void validateSuccessfulRegistration(RegistrationResponse response) {
+        assert response.getId() == 4 : "ID пользователя не совпадает!";
+        assert response.getToken().equals("QpwL5tke4Pnpja7X4") : "Токен не совпадает!";
+    }
+}

@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'io.freefair.lombok' version '8.10'
     id 'io.qameta.allure' version '2.11.2'
 }
 
@@ -7,45 +8,27 @@ repositories {
     mavenCentral()
 }
 
-def allureVersion = "2.21.0"
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+
+    testImplementation 'io.rest-assured:rest-assured:5.1.0'
+    testImplementation 'com.codeborne:selenide:6.19.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.2'
+    testImplementation 'org.slf4j:slf4j-simple:2.0.16'
+    testImplementation 'io.qameta.allure:allure-rest-assured:2.21.0'
+}
 
 allure {
     report {
-        version.set(allureVersion)
+        version.set("2.21.0")
     }
     adapter {
         aspectjWeaver.set(true)
         frameworks {
             junit5 {
-                adapterVersion.set(allureVersion)
+                adapterVersion.set("2.21.0")
             }
         }
     }
 }
 
-dependencies {
-    testImplementation 'com.codeborne:selenide:6.19.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.2'
-    testImplementation 'org.slf4j:slf4j-simple:2.0.16'
-    compileOnly 'org.projectlombok:lombok:1.18.28'
-    annotationProcessor 'org.projectlombok:lombok:1.18.28'
-    testImplementation "io.rest-assured:rest-assured:5.1.0";
-}
-
-tasks.withType(Test) {
-    systemProperties(System.getProperties())
-    useJUnitPlatform()
-    testLogging {
-        lifecycle {
-            events "passed" , "started", "skipped", "failed", "standard_error", "standard_out"
-            exceptionFormat "short"
-        }
-    }
-}
-
-task jenkins_test(type: Test) {
-    useJUnitPlatform {
-        includeTags ("simple")
-        excludeTags("other")
-    }
-}
